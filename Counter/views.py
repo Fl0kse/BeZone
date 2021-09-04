@@ -23,6 +23,7 @@ class CounterView(APIView):
         self._check_auth(request)
         return HttpResponse(add_count(request.user.username))
 
+    # Need to set X-CSRFToken in headers
     def delete(self, request):
         self._check_auth(request)
         return HttpResponse(remove_count(request.user.username))
