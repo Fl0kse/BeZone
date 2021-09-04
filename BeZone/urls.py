@@ -15,11 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from Counter.views import LoginView
+from Counter.views import CounterView, CustomAuthToken
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
-    # path('', admin.site.urls),
     path('admin/', admin.site.urls),
-    # path('counter/', ),
-    path('login/', LoginView.as_view()),
+    path('counter/', CounterView.as_view()),
+    path('login/', CustomAuthToken.as_view()),
 ]

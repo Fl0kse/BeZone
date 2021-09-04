@@ -1,10 +1,10 @@
 import json
-
+from django.contrib import auth
 from django.http import HttpResponse
 from rest_framework.views import APIView
 
 from .exception import UnauthorizedException
-from Counter.util import get_token, check_user_data, get_info_login
+from Counter.util import get_info_login, get_count, add_count, remove_count
 
 
 class CounterView(APIView):
@@ -16,21 +16,26 @@ class CounterView(APIView):
 
     def get(self, request):
         self._check_auth(request)
+        return HttpResponse(get_count(request.user.username))
+
+    # Need to set X-CSRFToken in headers
+    def post(self, request):
+        self._check_auth(request)
+        return HttpResponse(add_count(request.user.username))
+
+    def delete(self, request):
+        self._check_auth(request)
+        return HttpResponse(remove_count(request.user.username))
 
 
-class LoginView(APIView):
+class CustomAuthToken(APIView):
 
     def post(self, request):
         data = json.loads(request.body.decode('utf-8'))
-        user, password = get_info_login(data)
-
-        res, user_id = check_user_data(user, password)
-
-        if res:
-            response = HttpResponse()
-            token = get_token(user_id=user_id)
-            response.set_cookie(key='token', value=token, secure=True)
-            response.cookies["token"]['SameSite'] = "None"
-            response['token'] = token
-            return response
-        return HttpResponse("User is not found")
+        username, password = get_info_login(data)
+        user = auth.authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            auth.login(request, user)
+            return HttpResponse("Authorized")
+        else:
+            return HttpResponse("Unauthorized")
